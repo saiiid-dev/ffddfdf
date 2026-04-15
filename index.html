@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoursHub — LKERT Mohamed Said</title>
+<!-- Favicon / Icon -->
+<link rel="icon" type="image/png" sizes="32x32" href="icon_cours.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="icon_cours.jpg">
+<link rel="apple-touch-icon" sizes="180x180" href="icon_cours.jpg">
+<link rel="shortcut icon" href="icon_cours.jpg">
+<meta name="msapplication-TileImage" content="icon_cours.jpg">
+<meta name="msapplication-TileColor" content="#00ff9d">
+<meta name="theme-color" content="#04060f">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#04060f; --surface:#080d1e; --border:rgba(255,255,255,.07);
+  --green:#00ff9d; --blue:#3b82f6; --purple:#a855f7;
+  --orange:#f97316; --red:#ef4444; --yellow:#eab308;
+  --text:#e2e8f0; --muted:rgba(226,232,240,.45);
+  --mono:'JetBrains Mono',monospace;
+  --display:'Syne',sans-serif;
+  --body:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;}
+
+#bgCanvas{position:fixed;inset:0;z-index:0;opacity:.5;}
+#prog{position:fixed;top:0;left:0;height:2px;width:0;
+  background:linear-gradient(90deg,var(--green),var(--blue));z-index:1000;transition:width .1s;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.9rem 2.5rem;
+  background:rgba(4,6,15,.88);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);}
+.nav-logo{font-family:var(--mono);font-size:.85rem;color:var(--green);letter-spacing:.05em;}
+.nav-logo span{color:var(--muted);}
+.nav-tag{font-family:var(--mono);font-size:.72rem;color:var(--muted);
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:4px;padding:.25rem .7rem;}
+
+/* HERO — padding bottom réduit pour coller au disclaimer */
+.hero{position:relative;z-index:10;
+  padding:9rem 2rem 2.5rem;
+  display:flex;flex-direction:column;align-items:center;text-align:center;}
+.hero-eyebrow{font-family:var(--mono);font-size:.75rem;color:var(--green);
+  letter-spacing:.2em;text-transform:uppercase;margin-bottom:1.4rem;
+  opacity:0;animation:fadeUp .8s ease .2s forwards;}
+.hero-eyebrow::before{content:'> ';opacity:.5;}
+.hero-title{font-family:var(--display);font-size:clamp(2.8rem,7vw,5.5rem);
+  font-weight:800;line-height:1.05;margin-bottom:1.4rem;
+  opacity:0;animation:fadeUp .8s ease .4s forwards;}
+.hero-title .line1{display:block;color:var(--text);}
+.hero-title .line2{display:block;
+  background:linear-gradient(135deg,var(--green) 0%,var(--blue) 60%,var(--purple) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{max-width:520px;font-size:.95rem;color:var(--muted);line-height:1.8;
+  margin-bottom:2.2rem;opacity:0;animation:fadeUp .8s ease .6s forwards;}
+.hero-stats{display:flex;gap:3rem;opacity:0;animation:fadeUp .8s ease .8s forwards;}
+.stat{text-align:center;}
+.stat-num{font-family:var(--mono);font-size:2rem;font-weight:700;color:var(--green);display:block;}
+.stat-lbl{font-size:.72rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+/* DISCLAIMER — margin-top petit, pas de padding excessif */
+.disclaimer{position:relative;z-index:10;
+  max-width:760px;margin:1.8rem auto 0;padding:0 2rem;
+  opacity:0;animation:fadeUp .8s ease 1s forwards;}
+.disclaimer-inner{background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.25);
+  border-radius:12px;padding:1.1rem 1.6rem;display:flex;gap:.9rem;align-items:flex-start;}
+.disclaimer-icon{font-size:1.3rem;flex-shrink:0;margin-top:.1rem;}
+.disclaimer-text{font-size:.8rem;color:rgba(234,179,8,.85);line-height:1.75;}
+.disclaimer-text strong{color:#eab308;}
+
+/* SECTION LABEL */
+.section-label{position:relative;z-index:10;text-align:center;padding:2.5rem 2rem 1.5rem;}
+.section-label h2{font-family:var(--display);font-size:1rem;font-weight:700;
+  color:var(--muted);letter-spacing:.15em;text-transform:uppercase;}
+.section-label h2::before{content:'// ';}
+
+/* MODULES GRID */
+.modules{position:relative;z-index:10;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:1.5rem;max-width:1200px;margin:0 auto;padding:0 2rem 6rem;}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:2rem;position:relative;overflow:hidden;
+  transition:transform .3s,border-color .3s,box-shadow .3s;
+  display:flex;flex-direction:column;gap:1.1rem;
+  opacity:0;animation:fadeUp .7s ease forwards;}
+.card:nth-child(1){animation-delay:.1s;}
+.card:nth-child(2){animation-delay:.2s;}
+.card:nth-child(3){animation-delay:.3s;}
+.card:nth-child(4){animation-delay:.4s;}
+.card:nth-child(5){animation-delay:.5s;}
+.card::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--accent-a,.1) 0%,transparent 60%);
+  opacity:0;transition:opacity .4s;pointer-events:none;}
+.card:hover{transform:translateY(-6px);}
+.card:hover::before{opacity:1;}
+.card[data-accent="green"]{--accent-a:rgba(0,255,157,.08);}
+.card[data-accent="blue"]{--accent-a:rgba(59,130,246,.08);}
+.card[data-accent="purple"]{--accent-a:rgba(168,85,247,.08);}
+.card[data-accent="orange"]{--accent-a:rgba(249,115,22,.08);}
+.card[data-accent="red"]{--accent-a:rgba(239,68,68,.08);}
+.card[data-accent="green"]:hover{border-color:rgba(0,255,157,.4);box-shadow:0 20px 60px rgba(0,255,157,.1);}
+.card[data-accent="blue"]:hover{border-color:rgba(59,130,246,.4);box-shadow:0 20px 60px rgba(59,130,246,.1);}
+.card[data-accent="purple"]:hover{border-color:rgba(168,85,247,.4);box-shadow:0 20px 60px rgba(168,85,247,.1);}
+.card[data-accent="orange"]:hover{border-color:rgba(249,115,22,.4);box-shadow:0 20px 60px rgba(249,115,22,.1);}
+.card[data-accent="red"]:hover{border-color:rgba(239,68,68,.4);box-shadow:0 20px 60px rgba(239,68,68,.1);}
+
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;}
+.card-icon-wrap{width:50px;height:50px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);}
+.card-tag{font-family:var(--mono);font-size:.63rem;padding:.22rem .55rem;border-radius:4px;
+  letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
+.tag-green{background:rgba(0,255,157,.12);color:var(--green);border:1px solid rgba(0,255,157,.25);}
+.tag-blue{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.25);}
+.tag-purple{background:rgba(168,85,247,.12);color:#d8b4fe;border:1px solid rgba(168,85,247,.25);}
+.tag-orange{background:rgba(249,115,22,.12);color:#fdba74;border:1px solid rgba(249,115,22,.25);}
+.tag-red{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.25);}
+.card-code{font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:.25rem;}
+.card-title{font-family:var(--display);font-size:1.2rem;font-weight:800;line-height:1.2;color:var(--text);}
+.card-desc{font-size:.83rem;color:var(--muted);line-height:1.7;}
+
+/* CHAPTERS — FIX: scrollbar added for many chapters, pointer-events couvre tout le lien */
+.card-chapters{
+  display:flex;
+  flex-direction:column;
+  gap:.45rem;
+  margin-top:.2rem;
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+.card-chapters::-webkit-scrollbar{width:3px;}
+.card-chapters::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:10px;}
+.card-chapters::-webkit-scrollbar-thumb:hover{background:var(--green);}
+
+.chapter-item{
+  display:flex;align-items:center;gap:.7rem;
+  font-size:.78rem;color:var(--muted);
+  padding:.5rem .9rem;border-radius:8px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  transition:background .2s,border-color .2s,transform .2s,color .2s;
+  text-decoration:none;
+  position:relative;z-index:2;  /* au dessus de la carte */
+}
+.chapter-item:hover{
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  border-color:rgba(255,255,255,.18);
+  transform:translateX(5px);
+}
+.ch-num{font-family:var(--mono);font-size:.63rem;color:var(--muted);opacity:.55;flex-shrink:0;width:1.6rem;}
+.ch-name{flex:1;}
+.ch-arrow{
+  opacity:0;font-size:.8rem;flex-shrink:0;
+  transition:opacity .2s,transform .2s;
+}
+.chapter-item:hover .ch-arrow{opacity:1;transform:translateX(3px);}
+
+.coming-soon{display:flex;align-items:center;justify-content:center;gap:.5rem;
+  font-family:var(--mono);font-size:.7rem;color:var(--muted);
+  padding:.7rem;border-radius:8px;border:1px dashed rgba(255,255,255,.1);}
+
+/* CARD FOOTER */
+.card-footer{display:flex;align-items:center;justify-content:space-between;
+  padding-top:1rem;border-top:1px solid var(--border);margin-top:auto;}
+.card-status{font-family:var(--mono);font-size:.67rem;display:flex;align-items:center;gap:.4rem;}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dot-active{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite;}
+.dot-soon{background:rgba(255,255,255,.2);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* EXPLORER BTN */
+.btn-explorer{
+  font-family:var(--mono);font-size:.7rem;
+  display:flex;align-items:center;gap:.4rem;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:6px;padding:.32rem .85rem;
+  color:var(--muted);cursor:pointer;
+  transition:all .2s;position:relative;z-index:2;
+}
+.btn-explorer:hover{background:rgba(255,255,255,.1);color:var(--text);border-color:rgba(255,255,255,.22);}
+.btn-explorer .ico{transition:transform .25s;}
+.btn-explorer:hover .ico{transform:rotate(45deg);}
+
+/* ══════════════════════════
+   MODAL
+══════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(4,6,15,.82);backdrop-filter:blur(14px);
+  display:flex;align-items:center;justify-content:center;padding:1.5rem;
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:#0b1225;border:1px solid rgba(255,255,255,.12);border-radius:20px;
+  width:100%;max-width:500px;max-height:82vh;
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:scale(.93) translateY(14px);
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 40px 100px rgba(0,0,0,.65);
+}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+
+.modal-header{display:flex;align-items:center;justify-content:space-between;
+  padding:1.3rem 1.7rem;border-bottom:1px solid var(--border);flex-shrink:0;}
+.modal-header-left{display:flex;align-items:center;gap:.85rem;}
+.modal-module-icon{font-size:1.7rem;}
+.modal-module-name{font-family:var(--display);font-size:1.05rem;font-weight:800;color:var(--text);}
+.modal-module-code{font-family:var(--mono);font-size:.66rem;color:var(--muted);margin-top:.1rem;}
+.modal-close{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);
+  background:rgba(255,255,255,.05);color:var(--muted);font-size:.95rem;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
+.modal-close:hover{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#fca5a5;}
+
+.modal-body{overflow-y:auto;padding:1.4rem 1.7rem;flex:1;}
+.modal-body::-webkit-scrollbar{width:3px;}
+.modal-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+
+.modal-section-title{font-family:var(--mono);font-size:.63rem;color:var(--muted);
+  letter-spacing:.15em;text-transform:uppercase;margin-bottom:.8rem;}
+
+.modal-chapter{display:flex;align-items:center;gap:.8rem;
+  padding:.72rem 1rem;border-radius:10px;
+  background:rgba(255,255,255,.03);border:1px solid var(--border);
+  margin-bottom:.5rem;text-decoration:none;color:var(--text);
+  transition:all .22s;cursor:pointer;}
+.modal-chapter:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16);transform:translateX(4px);}
+.modal-ch-num{font-family:var(--mono);font-size:.63rem;color:var(--muted);width:2rem;flex-shrink:0;opacity:.55;}
+.modal-ch-name{flex:1;font-size:.84rem;}
+.modal-ch-badge{font-family:var(--mono);font-size:.58rem;padding:.14rem .5rem;border-radius:4px;flex-shrink:0;}
+.badge-ok{background:rgba(0,255,157,.14);color:var(--green);border:1px solid rgba(0,255,157,.28);}
+.badge-detail{background:rgba(168,85,247,.14);color:#d8b4fe;border:1px solid rgba(168,85,247,.28);}
+.badge-guide{background:rgba(59,130,246,.14);color:#93c5fd;border:1px solid rgba(59,130,246,.28);}
+
+.modal-empty{text-align:center;padding:2.2rem 1rem;
+  font-family:var(--mono);font-size:.78rem;color:var(--muted);line-height:1.9;}
+.modal-empty .em-icon{font-size:2.5rem;display:block;margin-bottom:.8rem;}
+
+/* FOOTER */
+footer{position:relative;z-index:10;border-top:1px solid var(--border);padding:3rem 2rem;text-align:center;}
+.footer-name{font-family:var(--display);font-size:1.5rem;font-weight:800;color:var(--text);margin-bottom:.4rem;}
+.footer-name span{background:linear-gradient(135deg,var(--green),var(--blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.footer-meta{font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-bottom:1.4rem;letter-spacing:.08em;}
+.footer-disclaimer{max-width:580px;margin:0 auto;font-size:.77rem;color:rgba(255,255,255,.22);line-height:1.8;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:rgba(0,255,157,.25);border-radius:2px;}
+.cursor{display:inline-block;width:2px;height:.9em;background:var(--green);
+  margin-left:2px;vertical-align:middle;animation:blink 1s infinite;}
+
+@media(max-width:600px){
+  .hero-stats{gap:1.8rem;}
+  nav{padding:.8rem 1.2rem;}
+  .modules{padding:0 1rem 4rem;}
+  .card{padding:1.5rem;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div id="prog"></div>
+
+<nav>
+  <div class="nav-logo"><span>~/</span>courshub<div class="cursor"></div></div>
+  <div class="nav-tag">3ème Année LMD · Informatique</div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">Base de connaissances personnelle</div>
+  <h1 class="hero-title">
+    <span class="line1">Mes Résumés</span>
+    <span class="line2">de Cours</span>
+  </h1>
+  <p class="hero-sub">Un espace centralisé pour retrouver rapidement les résumés interactifs de tous mes modules. Navigue, clique, explore.</p>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">5</span><span class="stat-lbl">Modules</span></div>
+    <div class="stat"><span class="stat-num" id="cntChapters">0</span><span class="stat-lbl">Chapitres</span></div>
+    <div class="stat"><span class="stat-num">L3</span><span class="stat-lbl">Niveau</span></div>
+  </div>
+</section>
+
+<div class="disclaimer">
+  <div class="disclaimer-inner">
+    <div class="disclaimer-icon">⚠️</div>
+    <div class="disclaimer-text">
+      <strong>Avertissement</strong> — Tous les résumés ici sont <strong>basés uniquement sur les diapositives des professeurs</strong>.
+      Ils ne remplacent <strong>ni le cours, ni la présence en classe</strong>. Il manque des informations essentielles à ton développement.
+      <strong>Fais tes propres recherches et ne sèche jamais tes cours.</strong> 📚
+    </div>
+  </div>
+</div>
+
+<div class="section-label"><h2>Modules disponibles</h2></div>
+
+<div class="modules">
+
+  <!-- DSS -->
+  <div class="card" data-accent="blue"
+    data-modal-icon="🗄️" data-modal-name="Données Semi-Structurées" data-modal-code="INF-DSS · S6">
+    <div class="card-top">
+      <div><div class="card-icon-wrap">🗄️</div><div class="card-code">INF-DSS · S6</div></div>
+      <span class="card-tag tag-blue">Données</span>
+    </div>
+    <div>
+      <div class="card-title">Données Semi-Structurées</div>
+      <div class="card-desc">XML, JSON, XPath, XQuery, DTD, Schémas. La gestion des données qui ne rentrent pas dans un tableau classique.</div>
+    </div>
+    <div class="card-chapters">
+      <a class="chapter-item" href="DSS/Chapitre1&2.html">
+        <span class="ch-num">01 & 02</span><span class="ch-name">Introduction aux Données Semi-Structurées</span><span class="ch-arrow">→</span>
+      </a>
+      <a class="chapter-item" href="DSS/chapitre3part01.html">
+        <span class="ch-num">03</span><span class="ch-name">Le Noyau XML (Part 01)</span><span class="ch-arrow">→</span>
+      </a>
+      <a class="chapter-item" href="DSS/chapitre3part02.html">
+        <span class="ch-num">03</span><span class="ch-name">DTD & XSD (Part 02)</span><span class="ch-arrow">→</span>
+      </a>
+      <a class="chapter-item" href="DSS/chapitre4part01.html">
+        <span class="ch-num">04</span><span class="ch-name">Galaxie XML : XPath & XSLT (Part 01)</span><span class="ch-arrow">â†’</span>
+      </a>
+    </div>
+    <div class="card-footer">
+      <div class="card-status"><div class="dot dot-active"></div><span style="color:var(--green)">Disponible</span></div>
+      <button class="btn-explorer" onclick="openModal(this,event)"><span class="ico">⊕</span> Explorer</button>
+    </div>
+  </div>
+
+  <!-- SECURITE -->
+  <div class="card" data-accent="red"
+    data-modal-icon="🔐" data-modal-name="Sécurité Informatique" data-modal-code="INF-SEC · S6">
+    <div class="card-top">
+      <div><div class="card-icon-wrap">🔐</div><div class="card-code">INF-SEC · S6</div></div>
+      <span class="card-tag tag-red">Sécurité</span>
+    </div>
+    <div>
+      <div class="card-title">Sécurité Informatique</div>
+      <div class="card-desc">Cryptographie, protocoles de sécurité, attaques, authentification, pare-feu. Protéger les systèmes et les données.</div>
+    </div>
+    <div class="card-chapters">
+      <a class="chapter-item" href="SecInformatique/chapitre01.html">
+        <span class="ch-num">01</span><span class="ch-name">Introduction à la Sécurité Informatique</span><span class="ch-arrow">→</span>
+      </a>
+      <a class="chapter-item" href="SecInformatique/chapitre02.html">
+        <span class="ch-num">02</span><span class="ch-name">Cryptographie Classique</span><span class="ch-arrow">→</span>
+      </a>
+    </div>
+    <div class="card-footer">
+      <div class="card-status"><div class="dot dot-active"></div><span style="color:var(--green)">Disponible</span></div>
+      <button class="btn-explorer" onclick="openModal(this,event)"><span class="ico">⊕</span> Explorer</button>
+    </div>
+  </div>
+
+  <!-- APPLICATION MOBILE -->
+  <div class="card" data-accent="green"
+    data-modal-icon="📱" data-modal-name="Application Mobile Android" data-modal-code="INF-MOB · S6">
+    <div class="card-top">
+      <div><div class="card-icon-wrap">📱</div><div class="card-code">INF-MOB · S6</div></div>
+      <span class="card-tag tag-green">Mobile</span>
+    </div>
+    <div>
+      <div class="card-title">Application Mobile</div>
+      <div class="card-desc">Développement Android avec Java. Architecture, composants, cycle de vie, outils SDK. Du code source au APK final.</div>
+    </div>
+    <div class="card-chapters">
+      <a class="chapter-item" href="AppMobile/chapitre01.html">
+        <span class="ch-num">01</span><span class="ch-name">Introduction à Android</span><span class="ch-arrow">→</span>
+      </a>
+      <a class="chapter-item" href="AppMobile/chapitre02.html">
+        <span class="ch-num">02</span><span class="ch-name">Outils de développement</span><span class="ch-arrow">→</span>
+      </a>
+      <a class="chapter-item" href="AppMobile/chapitre03.html">
+        <span class="ch-num">03</span><span class="ch-name">Notion d'Activité</span><span class="ch-arrow">→</span>
+      </a>
+      <a class="chapter-item" href="AppMobile/android-project-structure.html">
+        <span class="ch-num">📁</span><span class="ch-name">Structure d'un projet Android Studio</span><span class="ch-arrow">→</span>
+      </a>
+    </div>
+    <div class="card-footer">
+      <div class="card-status"><div class="dot dot-active"></div><span style="color:var(--green)">Disponible</span></div>
+      <button class="btn-explorer" onclick="openModal(this,event)"><span class="ico">⊕</span> Explorer</button>
+    </div>
+  </div>
+
+  <!-- IA -->
+  <div class="card" data-accent="purple"
+    data-modal-icon="🤖" data-modal-name="Intelligence Artificielle" data-modal-code="INF-IA · S6">
+    <div class="card-top">
+      <div><div class="card-icon-wrap">🤖</div><div class="card-code">INF-IA · S6</div></div>
+      <span class="card-tag tag-purple">IA</span>
+    </div>
+    <div>
+      <div class="card-title">Intelligence Artificielle</div>
+      <div class="card-desc">Algorithmes de recherche, apprentissage automatique, réseaux de neurones, logique floue. Les bases de l'IA moderne.</div>
+    </div>
+    <div class="card-chapters"><div class="coming-soon">⏳ &nbsp; Chapitres à venir...</div></div>
+    <div class="card-footer">
+      <div class="card-status"><div class="dot dot-soon"></div><span style="color:var(--muted)">En préparation</span></div>
+      <button class="btn-explorer" onclick="openModal(this,event)"><span class="ico">⊕</span> Explorer</button>
+    </div>
+  </div>
+
+  <!-- REDACTION -->
+  <div class="card" data-accent="orange"
+    data-modal-icon="✍️" data-modal-name="Rédaction Scientifique" data-modal-code="INF-RED · S6">
+    <div class="card-top">
+      <div><div class="card-icon-wrap">✍️</div><div class="card-code">INF-RED · S6</div></div>
+      <span class="card-tag tag-orange">Rédaction</span>
+    </div>
+    <div>
+      <div class="card-title">Rédaction Scientifique</div>
+      <div class="card-desc">Méthodologie de rédaction, structure d'un article, bibliographie, LaTeX, présentation de résultats scientifiques.</div>
+    </div>
+    <div class="card-chapters"><div class="coming-soon">⏳ &nbsp; Chapitres à venir...</div></div>
+    <div class="card-footer">
+      <div class="card-status"><div class="dot dot-soon"></div><span style="color:var(--muted)">En préparation</span></div>
+      <button class="btn-explorer" onclick="openModal(this,event)"><span class="ico">⊕</span> Explorer</button>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-name"><span>LKERT</span> Mohamed Said</div>
+  <div class="footer-meta">Étudiant en Informatique · 3ème Année LMD · 2025–2026</div>
+  <div class="footer-disclaimer">
+    Les résumés de ce site sont basés uniquement sur les diapositives des professeurs.
+    Ils ne remplacent pas les cours ni la présence en classe.
+    Fais tes propres recherches et ne sèche jamais tes cours.
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-module-icon" id="mIcon"></div>
+        <div>
+          <div class="modal-module-name" id="mName"></div>
+          <div class="modal-module-code" id="mCode"></div>
+        </div>
+      </div>
+      <div class="modal-close" onclick="closeModal()">✕</div>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+  </div>
+</div>
+
+<script>
+/* Canvas */
+const canvas=document.getElementById('bgCanvas'),ctx=canvas.getContext('2d');
+let W,H,pts=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+class P{
+  constructor(){this.re();}
+  re(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;
+    this.r=Math.random()*1.5+.4;this.a=Math.random()*.4+.1;
+    this.c=['#00ff9d','#3b82f6','#a855f7','#f97316'][Math.floor(Math.random()*4)];}
+  up(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W||this.y<0||this.y>H)this.re();}
+  dr(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.fillStyle=this.c+Math.floor(this.a*255).toString(16).padStart(2,'0');ctx.fill();}
+}
+function init(){pts=[];const n=Math.min(Math.floor(W*H/12000),110);for(let i=0;i<n;i++)pts.push(new P());}
+function lines(){const md=130;for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+  const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+  if(d<md){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);
+  ctx.strokeStyle=`rgba(0,255,157,${(1-d/md)*.1})`;ctx.lineWidth=.5;ctx.stroke();}}}
+function loop(){ctx.clearRect(0,0,W,H);lines();pts.forEach(p=>{p.up();p.dr();});requestAnimationFrame(loop);}
+resize();init();loop();
+window.addEventListener('resize',()=>{resize();init();});
+
+/* Progress */
+window.addEventListener('scroll',()=>{
+  const s=document.documentElement.scrollTop,h=document.documentElement.scrollHeight-document.documentElement.clientHeight;
+  document.getElementById('prog').style.width=(s/h*100)+'%';});
+
+/* Chapter count */
+document.getElementById('cntChapters').textContent=document.querySelectorAll('.chapter-item').length;
+
+/* Typing */
+const l2=document.querySelector('.line2'),tx=l2.textContent;l2.textContent='';let ci=0;
+setTimeout(()=>{const t=setInterval(()=>{l2.textContent+=tx[ci++];if(ci>=tx.length)clearInterval(t);},60);},600);
+
+/* ── MODAL ── */
+function openModal(btn, e){
+  e.stopPropagation();
+  const card=btn.closest('.card');
+  document.getElementById('mIcon').textContent=card.dataset.modalIcon;
+  document.getElementById('mName').textContent=card.dataset.modalName;
+  document.getElementById('mCode').textContent=card.dataset.modalCode;
+
+  const chs=card.querySelectorAll('.chapter-item');
+  let html='';
+  if(!chs.length){
+    html=`<div class="modal-empty"><span class="em-icon">🚧</span>Ce module est en cours de préparation.<br>Les chapitres arrivent très prochainement !</div>`;
+  } else {
+    html=`<div class="modal-section-title">Contenu disponible — ${chs.length} ressource${chs.length>1?'s':''}</div>`;
+    chs.forEach(ch=>{
+      const num=ch.querySelector('.ch-num')?.textContent.trim()||'';
+      const name=ch.querySelector('.ch-name')?.textContent.trim()||'';
+      const href=ch.getAttribute('href')||'#';
+      let badge='<span class="modal-ch-badge badge-ok">Disponible</span>';
+      if(name.includes('détail')||name.includes('🎓'))badge='<span class="modal-ch-badge badge-detail">Détaillé</span>';
+      if(name.includes('Structure')||name.includes('📁'))badge='<span class="modal-ch-badge badge-guide">Guide</span>';
+      html+=`<a class="modal-chapter" href="${href}"><span class="modal-ch-num">${num}</span><span class="modal-ch-name">${name}</span>${badge}</a>`;
+    });
+  }
+  document.getElementById('mBody').innerHTML=html;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+document.getElementById('modalOverlay').addEventListener('click',function(e){
+  if(e.target===this)closeModal();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>
